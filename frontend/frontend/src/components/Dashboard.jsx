@@ -1,55 +1,67 @@
 // src/components/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from "recharts";
+import { io } from "socket.io-client";
 import "./Dashboard.css";
 
-function Dashboard() {
-  // Generate initial random values
-  const initialBPM = Math.floor(60 + Math.random() * 40);
-  const initialSpO2 = Math.floor(95 + Math.random() * 5);
-  const initialAccel = parseFloat((Math.random() * 5).toFixed(2));
-  const initialSteps = Math.floor(Math.random() * 1000);
+// Connect to backend Socket.IO server
+const socket = io("http://192.168.1.13:7002"); // Replace with your backend IP
 
+function Dashboard() {
+  // State for latest values per player
   const [latest, setLatest] = useState({
-    heartRate: initialBPM,
-    spo2: initialSpO2,
-    steps: initialSteps,
-    accel: initialAccel
+    heartRate: 0,
+    spo2: 0,
+    steps: 0,
+    accel: 0,
+    prediction: 0,
+    playerId: "unknown",
   });
 
-  const [data, setData] = useState([
-    {
-      time: new Date().toLocaleTimeString(),
-      heartRate: initialBPM,
-      spo2: initialSpO2,
-      steps: initialSteps,
-      accel: initialAccel
-    }
-  ]);
+  // Chart data
+  const [data, setData] = useState([]);
 
   useEffect(() => {
-    // Update chart every second with current values
-    const chartInterval = setInterval(() => {
-      const now = new Date().toLocaleTimeString();
-      const newEntry = { ...latest, time: now };
-      setData(prev => [...prev.slice(-29), newEntry]); // keep last 30 entries
-    }, 1000);
+    // Listen to predictionUpdate events from backend
+    socket.on("predictionUpdate", (playerData) => {
+      setLatest({
+        heartRate: playerData.bpm,
+        spo2: playerData.spo2,
+        steps: playerData.steps,
+        accel: playerData.accel ?? 0, // optional
+        prediction: playerData.prediction ?? 0,
+        playerId: playerData.playerId ?? "unknown",
+      });
 
-    // Increment steps smoothly every 15 seconds
-    const stepsInterval = setInterval(() => {
-      setLatest(prev => ({ ...prev, steps: prev.steps + 1 }));
-    }, 15000);
+      const now = new Date().toLocaleTimeString();
+      const newEntry = {
+        time: now,
+        heartRate: playerData.bpm,
+        spo2: playerData.spo2,
+        steps: playerData.steps,
+        accel: playerData.accel ?? 0,
+        prediction: playerData.prediction ?? 0,
+      };
+
+      setData((prev) => [...prev.slice(-29), newEntry]); // keep last 30 entries
+    });
 
     return () => {
-      clearInterval(chartInterval);
-      clearInterval(stepsInterval);
+      socket.off("predictionUpdate");
     };
-  }, [latest]);
+  }, []);
 
   return (
     <div>
-      <h2 style={{ textAlign: "center", color: "#f7c948", marginTop: "20px" }}>Footballer Health Dashboard</h2>
+      <h2 style={{ textAlign: "center", color: "#f7c948", marginTop: "20px" }}>
+        Footballer Health Dashboard
+      </h2>
+
       <div className="dashboard-container">
+        <div className="card">
+          <h3>Player ID</h3>
+          <p>{latest.playerId}</p>
+        </div>
         <div className="card">
           <h3>Heart Rate</h3>
           <p>{latest.heartRate} bpm</p>
@@ -63,13 +75,13 @@ function Dashboard() {
           <p>{latest.steps}</p>
         </div>
         <div className="card">
-          <h3>Acceleration</h3>
-          <p>{latest.accel.toFixed(2)} m/s²</p>
+          <h3>Injury Risk Prediction</h3>
+          <p>{latest.prediction?.toFixed(2)}</p>
         </div>
       </div>
 
       <div className="line-chart-container">
-        <LineChart width={800} height={300} data={data}>
+        <LineChart width={900} height={350} data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#444" />
           <XAxis dataKey="time" stroke="#fff" />
           <YAxis stroke="#fff" />
@@ -78,7 +90,7 @@ function Dashboard() {
           <Line type="monotone" dataKey="heartRate" stroke="#ff4d4d" name="Heart Rate (bpm)" />
           <Line type="monotone" dataKey="spo2" stroke="#4da6ff" name="SpO₂ (%)" />
           <Line type="monotone" dataKey="steps" stroke="#4dff4d" name="Steps" />
-          <Line type="monotone" dataKey="accel" stroke="#ff4dff" name="Acceleration" />
+          <Line type="monotone" dataKey="prediction" stroke="#ffb84d" name="Injury Risk (%)" />
         </LineChart>
       </div>
     </div>
