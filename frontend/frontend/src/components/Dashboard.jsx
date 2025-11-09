@@ -1,27 +1,50 @@
+// src/components/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from "recharts";
 import "./Dashboard.css";
 
 function Dashboard() {
-  const [data, setData] = useState([]);
-  const [latest, setLatest] = useState({ heartRate: 0, spo2: 0, steps: 0, accel: 0 });
+  // Generate initial random values
+  const initialBPM = Math.floor(60 + Math.random() * 40);
+  const initialSpO2 = Math.floor(95 + Math.random() * 5);
+  const initialAccel = parseFloat((Math.random() * 5).toFixed(2));
+  const initialSteps = Math.floor(Math.random() * 1000);
+
+  const [latest, setLatest] = useState({
+    heartRate: initialBPM,
+    spo2: initialSpO2,
+    steps: initialSteps,
+    accel: initialAccel
+  });
+
+  const [data, setData] = useState([
+    {
+      time: new Date().toLocaleTimeString(),
+      heartRate: initialBPM,
+      spo2: initialSpO2,
+      steps: initialSteps,
+      accel: initialAccel
+    }
+  ]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    // Update chart every second with current values
+    const chartInterval = setInterval(() => {
       const now = new Date().toLocaleTimeString();
-      const newEntry = {
-        time: now,
-        heartRate: Math.floor(60 + Math.random() * 40),
-        spo2: Math.floor(95 + Math.random() * 5),
-        steps: Math.floor(Math.random() * 20),
-        accel: Math.random() * 5
-      };
-      setData(prev => [...prev.slice(-9), newEntry]);
-      setLatest(newEntry);
+      const newEntry = { ...latest, time: now };
+      setData(prev => [...prev.slice(-29), newEntry]); // keep last 30 entries
     }, 1000);
 
-    return () => clearInterval(interval);
-  }, []);
+    // Increment steps smoothly every 15 seconds
+    const stepsInterval = setInterval(() => {
+      setLatest(prev => ({ ...prev, steps: prev.steps + 1 }));
+    }, 15000);
+
+    return () => {
+      clearInterval(chartInterval);
+      clearInterval(stepsInterval);
+    };
+  }, [latest]);
 
   return (
     <div>
@@ -48,8 +71,8 @@ function Dashboard() {
       <div className="line-chart-container">
         <LineChart width={800} height={300} data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-          <XAxis dataKey="time" stroke="#fff"/>
-          <YAxis stroke="#fff"/>
+          <XAxis dataKey="time" stroke="#fff" />
+          <YAxis stroke="#fff" />
           <Tooltip contentStyle={{ backgroundColor: "#1e1e2f", color: "#fff" }} />
           <Legend />
           <Line type="monotone" dataKey="heartRate" stroke="#ff4d4d" name="Heart Rate (bpm)" />

@@ -1,6 +1,6 @@
+// src/pages/HomePage.jsx
 import React from "react";
-import Dashboard from "../components/Dashboard";
-import "./HomePage.css"; // Create this file
+import Dashboard from "../components/Dashboard"; // import from components
 
 function HomePage() {
   return (
