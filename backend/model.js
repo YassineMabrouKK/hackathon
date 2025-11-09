@@ -1,26 +1,35 @@
-// backend/model.js
 import * as ort from "onnxruntime-node";
+import path from "path";
 
-let session;
+const modelPath = path.resolve("C:/Users/MSI/Desktop/hackaa/hackathon/backend/injury_risk_rf_reg (1).onnx");
 
+let session = null;
+
+// Load model once
 export async function loadModel() {
-  if (!session) {
-    session = await ort.InferenceSession.create("./024e5fba-7cbd-4f52-95af-aeefc46f21a8.onnx");
-    console.log("ONNX model loaded");
+  try {
+    session = await ort.InferenceSession.create(modelPath);
+    console.log("✅ ONNX model loaded successfully");
+  } catch (err) {
+    console.error("❌ Error loading ONNX model:", err.message);
   }
-  return session;
 }
 
 export async function predict(inputData) {
-  const session = await loadModel();
+  if (!session) {
+    console.error("❌ Model session is not initialized");
+    return [null];
+  }
 
-  // Convert your input data to float32 tensor
-  const tensor = new ort.Tensor("float32", Float32Array.from(inputData), [1, inputData.length]);
+  try {
+    const tensor = new ort.Tensor("float32", Float32Array.from(inputData), [1, inputData.length]);
+    const feeds = { "float_input": tensor }; // Use exact input node name from model
 
-  // The input name must match your model's input
-  const feeds = { input: tensor }; 
-  const results = await session.run(feeds);
-
-  // The output name must match your model's output
-  return results.output.data;
+    const results = await session.run(feeds);
+    const outputName = Object.keys(results)[0];
+    return results[outputName].data;
+  } catch (err) {
+    console.error("❌ Error running prediction:", err.message);
+    return [null];
+  }
 }
