@@ -1,0 +1,21 @@
+/* Ensure html and body take full height */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Full-page background */
+.homepage-container {
+  min-height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-image: url('../assets/football-bg.jpg'); /* replace with your image */
+  background-size: cover;       /* cover whole area */
+  background-position: center;  /* center the image */
+  background-repeat: no-repeat; /* no tiling */
+  color: #fff;
+  padding: 20px 0;
+}

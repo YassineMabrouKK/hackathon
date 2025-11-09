@@ -1,0 +1,65 @@
+/* Make html, body, and root take full viewport */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Full-page background */
+.app-container {
+  height: 100vh;         /* full viewport height */
+  width: 100vw;          /* full viewport width */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-image: url('./assets/football-bg.jpg'); /* replace with your image */
+  background-size: cover;       /* cover whole area */
+  background-position: center;  /* center the image */
+  background-repeat: no-repeat; /* no tiling */
+  color: #fff;
+  padding: 20px 0;
+  box-sizing: border-box;
+}
+
+/* Card styles for dashboard */
+.card {
+  background-color: rgba(30, 30, 47, 0.85); /* semi-transparent */
+  color: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  width: 250px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  margin: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+}
+
+/* Logo container */
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1em; /* space between logos */
+  margin-bottom: 2em;
+}
+
+/* Logo styles */
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
